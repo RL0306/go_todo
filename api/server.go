@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -15,28 +16,39 @@ var todos = []model.Todo{
 }
 
 func GetAllTodos(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling GetAllTodos request")
 	w.Header().Set("Content-Type", "application/json")
-	todosResp, _ := json.Marshal(todos)
+	todosResp, err := json.Marshal(todos)
+	if err != nil {
+		log.Printf("Error encoding todos to JSON: %s", err.Error())
+		responseError(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 	w.Write(todosResp)
 }
 
 func CreateTodo(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling CreateTodo request")
+
 	var todoRequest model.TodoRequest
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		responseError(w, "Error reading request body", http.StatusInternalServerError)
+		log.Printf("Error reading request body: %s", err.Error())
+		responseError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	err = json.Unmarshal(body, &todoRequest)
 	if err != nil {
-		responseError(w, "Error decoding JSON", http.StatusBadRequest)
+		log.Printf("Error decoding JSON: %s", err.Error())
+		responseError(w, "Bad Request - Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
 	if todoRequest.Description == "" {
-		responseError(w, "Description cannot be empty", http.StatusBadRequest)
+		log.Println("Description cannot be empty")
+		responseError(w, "Bad Request - Description cannot be empty", http.StatusBadRequest)
 		return
 	}
 
@@ -53,23 +65,28 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	successTodoResponse := map[string]string{"message": "Todo successfully created"}
 	successTodoResponseJSON, err := json.Marshal(successTodoResponse)
 	if err != nil {
-		responseError(w, "Error encoding JSON", http.StatusInternalServerError)
+		log.Printf("Error encoding JSON: %s", err.Error())
+		responseError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	w.Write(successTodoResponseJSON)
 }
 
 func DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling DeleteTodo request")
+
 	pattern := `/todo/(\d+)`
 	regex, err := regexp.Compile(pattern)
 	if err != nil {
-		responseError(w, "Error compiling regex", http.StatusInternalServerError)
+		log.Printf("Error compiling regex: %s", err.Error())
+		responseError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	matches := regex.FindStringSubmatch(r.URL.Path)
 	if len(matches) < 2 {
-		responseError(w, "Invalid URL format", http.StatusBadRequest)
+		log.Println("Invalid URL format")
+		responseError(w, "Bad Request - Invalid URL format", http.StatusBadRequest)
 		return
 	}
 
@@ -77,12 +94,14 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 
 	idAsInt, err := strconv.Atoi(idFromUrl)
 	if err != nil {
-		responseError(w, "Invalid ID format", http.StatusBadRequest)
+		log.Printf("Invalid ID format: %s", err.Error())
+		responseError(w, "Bad Request - Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
 	if idAsInt < 0 || idAsInt >= len(todos) {
-		responseError(w, "Invalid todo ID", http.StatusNotFound)
+		log.Println("Invalid todo ID")
+		responseError(w, "Not Found - Invalid todo ID", http.StatusNotFound)
 		return
 	}
 
@@ -95,16 +114,20 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateTodo(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling UpdateTodo request")
+
 	pattern := `/todo/(\d+)`
 	regex, err := regexp.Compile(pattern)
 	if err != nil {
-		responseError(w, "Error compiling regex", http.StatusInternalServerError)
+		log.Printf("Error compiling regex: %s", err.Error())
+		responseError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	idFromUrlMatches := regex.FindStringSubmatch(r.URL.Path)
 	if len(idFromUrlMatches) < 2 {
-		responseError(w, "Invalid URL format", http.StatusBadRequest)
+		log.Println("Invalid URL format")
+		responseError(w, "Bad Request - Invalid URL format", http.StatusBadRequest)
 		return
 	}
 
@@ -112,12 +135,14 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	idAsInt, err := strconv.Atoi(idFromUrl)
 	if err != nil {
-		responseError(w, "Invalid ID format", http.StatusBadRequest)
+		log.Printf("Invalid ID format: %s", err.Error())
+		responseError(w, "Bad Request - Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
 	if idAsInt < 0 || idAsInt >= len(todos) {
-		responseError(w, "Invalid todo ID", http.StatusNotFound)
+		log.Println("Invalid todo ID")
+		responseError(w, "Not Found - Invalid todo ID", http.StatusNotFound)
 		return
 	}
 
@@ -128,7 +153,8 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	updatedTodoResponse := map[string]string{"message": "Todo status updated to completed"}
 	updatedTodoResponseJson, err := json.Marshal(updatedTodoResponse)
 	if err != nil {
-		responseError(w, "Error encoding JSON", http.StatusInternalServerError)
+		log.Printf("Error encoding JSON: %s", err.Error())
+		responseError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	w.Write(updatedTodoResponseJson)
