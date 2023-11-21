@@ -1,0 +1,11 @@
+2023/11/21 12:10:55.322695 config.go:25: Log file created
+2023/11/21 12:10:59.857456 todo_handler.go:33: Handling GetAllTodos request
+2023/11/21 12:11:05.059686 todo_handler.go:48: Handling CreateTodo request
+2023/11/21 12:11:07.138607 todo_handler.go:33: Handling GetAllTodos request
+2023/11/21 12:11:12.832601 todo_handler.go:48: Handling CreateTodo request
+2023/11/21 12:11:14.663855 todo_handler.go:33: Handling GetAllTodos request
+2023/11/21 12:11:50.608229 todo_handler.go:33: Handling GetAllTodos request
+2023/11/21 12:11:52.874439 todo_handler.go:66: Handling DeleteTodo request
+2023/11/21 12:11:55.282694 todo_handler.go:33: Handling GetAllTodos request
+2023/11/21 12:11:57.720225 todo_handler.go:48: Handling CreateTodo request
+2023/11/21 12:11:59.622592 todo_handler.go:33: Handling GetAllTodos request

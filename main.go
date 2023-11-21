@@ -1,66 +1,24 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"todo/api"
 	"todo/config"
 )
 
-func TestHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]string{"request": "success"})
-}
-
 func main() {
-	// Logging setup
-	if err := handleLogging(); err != nil {
-		log.Fatalf("Error setting up logging: %v", err)
-	}
 
-	// REST API setup
-	if err := handleAPI(); err != nil {
-		log.Fatalf("Error setting up API: %v", err)
-	}
-}
+	//this is for get all and creating todos
+	http.HandleFunc("/todo", api.TodoHandler)
 
-func handleLogging() error {
-	if err := config.LoadEnvironmentFile(); err != nil {
-		return err
-	}
-
-	file, err := config.OpenLogFile("./todo.log")
-	if err != nil {
-		return err
-	}
-
-	log.SetOutput(file)
-	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
-	log.Println("Log file created")
-	return nil
-}
-
-// sets up the REST API endpoints.
-func handleAPI() error {
-	http.HandleFunc("/test", TestHandler)
-	http.HandleFunc("/todo", func(writer http.ResponseWriter, request *http.Request) {
-		switch request.Method {
-		case http.MethodGet:
-			api.GetAllTodos(writer, request)
-		case http.MethodPost:
-			api.CreateTodo(writer, request)
-		}
-	})
-
-	http.HandleFunc("/todo/", func(writer http.ResponseWriter, request *http.Request) {
-		switch request.Method {
-		case http.MethodDelete:
-			api.DeleteTodo(writer, request)
-		case http.MethodPatch:
-			api.UpdateTodo(writer, request)
-		}
-	})
+	//this below is for get by id/update/delete
+	//in these requests we will be passing in an id after the '/todo/ and that is why we need this
+	http.HandleFunc("/todo/", api.TodoHandler)
+	config.InitialiseLoggingConfig("./todo.log")
 
 	port := config.GetValueFromEnvFile("PORT")
-	return http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		return
+	}
 }
